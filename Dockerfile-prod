@@ -4,6 +4,10 @@ RUN python3 -m pip install -U pip
 RUN python3 -m pip install -U setuptools
 RUN python3 -m pip install nvflare==2.4.0
 
+# Install scikit-learn and pandas
+RUN python3 -m pip install scikit-learn
+RUN python3 -m pip install pandas
+
 WORKDIR /workspace/
 
 ENV PYTHONPATH=$PYTHONPATH:/workspace/app/code/

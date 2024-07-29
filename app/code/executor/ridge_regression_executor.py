@@ -17,28 +17,37 @@ class RidgeRegressionExecutor(Executor):
         self.parameters = None
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
+        print(f"Executing task: {task_name}")
         if task_name == "train_local_model":
-            return self._train_local_model(fl_ctx)
+            return self._task_train_local_model(fl_ctx)
         elif task_name == "set_global_model":
-            return self._set_global_model(shareable)
+            return self._task_set_global_model(shareable, fl_ctx)
         return Shareable()
 
-    def _train_local_model(self, fl_ctx: FLContext) -> Shareable:
+    def _task_train_local_model(self, fl_ctx: FLContext) -> Shareable:
         data_dir = self._get_data_dir_path(fl_ctx)
         if not data_dir:
-            raise FileNotFoundError(
-                "Data directory path could not be determined.")
+            raise FileNotFoundError("Data directory path could not be determined.")
 
-        self.parameters = fl_ctx.get_prop("COMPUTATION_PARAMETERS", {})
+        self.parameters = fl_ctx.get_peer_context().get_prop("COMPUTATION_PARAMETERS", default=None)
+    
+        print(f"Computation parameters: {self.parameters}")
+
         X, y = self._load_data(data_dir)
+        print(f"Loaded data shapes - X: {X.shape}, y: {y.shape}")
+
         self.model = Ridge(alpha=self.parameters.get('Lambda', 1.0))
         self.model.fit(X, y)
+        print("Model training completed.")
 
         shareable = Shareable()
         shareable["weights"] = self.model.coef_.tolist()
         return shareable
 
-    def _set_global_model(self, shareable: Shareable) -> Shareable:
+    def _task_set_global_model(self, shareable: Shareable, fl_ctx) -> Shareable:
+        
+        print(f"Setting global model.")
+        
         global_weights = shareable.get("global_model", {}).get("weights")
         if global_weights is not None:
             if self.model is None:
@@ -46,11 +55,11 @@ class RidgeRegressionExecutor(Executor):
             self.model.coef_ = np.array(global_weights)
 
             # Save global model to file
-            fl_ctx = shareable.get_fl_context()
             self._save_global_model_to_file(global_weights, fl_ctx)
         return Shareable()
 
     def _load_data(self, data_dir):
+        print(f"\n\nLoading data from: {data_dir}")
         covariates_file = os.path.join(data_dir, "covariates.csv")
         data_file = os.path.join(data_dir, "data.csv")
 
@@ -60,8 +69,11 @@ class RidgeRegressionExecutor(Executor):
         covariates_df = pd.read_csv(covariates_file)
         data_df = pd.read_csv(data_file)
 
+        print(f"Loaded files: {covariates_file}, {data_file}")
+
         X = covariates_df[self.parameters.get('X_headers', [])]
         y = data_df[self.parameters.get('y_headers', [])]
+        print(f"Extracted data - X: {X.head()}, y: {y.head()}")
         return X, y
 
     def _get_data_dir_path(self, fl_ctx: FLContext) -> str:
@@ -72,6 +84,7 @@ class RidgeRegressionExecutor(Executor):
         poc_path = os.path.abspath(os.path.join(
             os.getcwd(), "../../../../test_data", site_name))
 
+        print(f"Determining data directory for site: {site_name}")
         if production_path:
             return production_path
         if os.path.exists(simulator_path):

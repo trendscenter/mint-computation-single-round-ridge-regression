@@ -20,6 +20,7 @@ class RidgeRegressionWorkflow(Controller):
         self._persist_every_n_rounds = kwargs.get('persist_every_n_rounds', 1)
         self._snapshot_every_n_rounds = kwargs.get('snapshot_every_n_rounds', 1)
         self.aggregator = None
+        
 
     def start_controller(self, fl_ctx: FLContext) -> None:
         self.aggregator = self._engine.get_component(self.aggregator_id)
@@ -32,6 +33,8 @@ class RidgeRegressionWorkflow(Controller):
         pass
 
     def control_flow(self, abort_signal: Signal, fl_ctx: FLContext) -> None:
+        fl_ctx.set_prop(key="CURRENT_ROUND", value=0)
+        
         for round_num in range(self._num_rounds):
             if abort_signal.triggered:
                 break
