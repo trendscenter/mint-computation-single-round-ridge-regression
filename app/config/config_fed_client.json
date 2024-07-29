@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "executors": [
+    {
+      "tasks": [
+        "train_local_model",
+        "set_global_model"
+      ],
+      "executor": {
+        "path": "executor.ridge_regression_executor.RidgeRegressionExecutor",
+        "args": {}
+      }
+    }
+  ],
+  "task_result_filters": [],
+  "task_data_filters": [],
+  "components": []
+}

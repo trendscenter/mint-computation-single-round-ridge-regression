@@ -1,0 +1,19 @@
+FROM python:3.8-buster
+
+# Upgrade pip and setuptools
+RUN python3 -m pip install -U pip
+RUN python3 -m pip install -U setuptools
+
+# Install NVFLARE
+RUN python3 -m pip install nvflare==2.4.0
+
+# Install scikit-learn and pandas
+RUN python3 -m pip install scikit-learn
+RUN python3 -m pip install pandas
+
+WORKDIR /workspace/
+
+ENV PYTHONPATH=$PYTHONPATH:/workspace/app/code/
+ENV NVFLARE_POC_WORKSPACE=/workspace/poc-workspace
+
+CMD ["/bin/bash"]

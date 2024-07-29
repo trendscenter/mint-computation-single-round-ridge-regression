@@ -1,0 +1,5 @@
+{
+    "y_headers": ["L_hippo","R_hippo","Tot_hippo"],
+    "X_headers": ["MDD","Age","Sex","ICV"],
+    "Lambda":  1
+}

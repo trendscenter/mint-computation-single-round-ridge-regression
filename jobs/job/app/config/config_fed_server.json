@@ -1,0 +1,24 @@
+{
+  "format_version": 2,
+  "server": {
+    "heart_beat_timeout": 600
+  },
+  "task_data_filters": [],
+  "task_result_filters": [],
+  "components": [
+    {
+      "id": "ridge_aggregator",
+      "path": "aggregator.ridge_regression_aggregator.RidgeRegressionAggregator",
+      "args": {}
+    }
+  ],
+  "workflows": [
+    {
+      "id": "ridge_regression_workflow",
+      "path": "workflow.ridge_regression_workflow.RidgeRegressionWorkflow",
+      "args": {
+        "aggregator_id": "ridge_aggregator"
+      }
+    }
+  ]
+}
