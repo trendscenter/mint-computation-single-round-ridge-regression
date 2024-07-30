@@ -57,27 +57,17 @@ class RidgeRegressionExecutor(Executor):
         X_train, y_train = self._load_data_from_file()
         model.coef_ = np.array(global_weights)
 
-        print(f"\n\n")
-        print(f"typeof(X_train): {type(X_train)}, typeof(y_train): {type(y_train)}")
-        print(f"typeof(model.coef_): {type(model.coef_)}")
-        
         try:
             # Ensuring y_train is a 1-dimensional array for OLS
             if y_train.ndim > 1 and y_train.shape[1] == 1:
                 y_train = y_train.flatten()
-            
+
             X_train = X_train.astype(float)
             y_train = y_train.astype(float)
             X_with_const = sm.add_constant(X_train)
             sm_model = sm.OLS(y_train, X_with_const).fit()
-            
-            print(f"typeof(sm_model.params): {type(sm_model.params)}")
-            print(f"typeof(sm_model.tvalues): {type(sm_model.tvalues)}")
-            print(f"typeof(sm_model.pvalues): {type(sm_model.pvalues)}")
-            print(f"typeof(sm_model.conf_int()): {type(sm_model.conf_int())}")
-            print(f"typeof(sm_model.rsquared): {type(sm_model.rsquared)}")
-            print(f"typeof(sm_model.df_resid): {type(sm_model.df_resid)}")
 
+            # Extracting coefficients and statistics
             coefficients = sm_model.params.tolist()
             t_stats = sm_model.tvalues.tolist()
             p_values = sm_model.pvalues.tolist()
@@ -85,6 +75,7 @@ class RidgeRegressionExecutor(Executor):
             r_squared = sm_model.rsquared
             degrees_of_freedom = int(sm_model.df_resid)
 
+            # Preparing the JSON output
             model_stats = {
                 "coefficients": coefficients,
                 "t_stats": t_stats,
@@ -94,8 +85,8 @@ class RidgeRegressionExecutor(Executor):
                 "degrees_of_freedom": degrees_of_freedom
             }
 
-            self._save_global_model_to_file(
-                global_weights, model_stats, fl_ctx)
+            self._save_global_model_to_file(global_weights, model_stats, fl_ctx)
+
         except Exception as e:
             print(f"\n\nError in calculating model statistics: {e}\n\n")
 
