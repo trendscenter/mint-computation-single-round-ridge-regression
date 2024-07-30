@@ -27,10 +27,12 @@ class RidgeRegressionExecutor(Executor):
     def _task_train_local_model(self, fl_ctx: FLContext) -> Shareable:
         data_dir = self._get_data_dir_path(fl_ctx)
         if not data_dir:
-            raise FileNotFoundError("Data directory path could not be determined.")
+            raise FileNotFoundError(
+                "Data directory path could not be determined.")
 
-        self.parameters = fl_ctx.get_peer_context().get_prop("COMPUTATION_PARAMETERS", default=None)
-    
+        self.parameters = fl_ctx.get_peer_context().get_prop(
+            "COMPUTATION_PARAMETERS", default=None)
+
         print(f"Computation parameters: {self.parameters}")
 
         X, y = self._load_data(data_dir)
@@ -45,9 +47,9 @@ class RidgeRegressionExecutor(Executor):
         return shareable
 
     def _task_set_global_model(self, shareable: Shareable, fl_ctx) -> Shareable:
-        
+
         print(f"Setting global model.")
-        
+
         global_weights = shareable.get("global_model", {}).get("weights")
         if global_weights is not None:
             if self.model is None:
