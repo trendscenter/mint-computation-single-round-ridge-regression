@@ -1,20 +1,23 @@
+import os
+import json
+import pickle
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from sklearn.linear_model import Ridge
 from nvflare.apis.executor import Executor
 from nvflare.apis.fl_constant import FLContextKey
 from nvflare.apis.shareable import Shareable
 from nvflare.apis.fl_context import FLContext
 from nvflare.apis.signal import Signal
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import Ridge
-import os
-import json
 
 
 class RidgeRegressionExecutor(Executor):
     def __init__(self):
         super().__init__()
-        self.model = None
-        self.parameters = None
+        self.model_path = "ridge_model.pkl"
+        self.parameters_path = "parameters.pkl"
+        self.data_path = "training_data.pkl"
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
         print(f"Executing task: {task_name}")
@@ -26,42 +29,81 @@ class RidgeRegressionExecutor(Executor):
 
     def _task_train_local_model(self, fl_ctx: FLContext) -> Shareable:
         data_dir = self._get_data_dir_path(fl_ctx)
-        if not data_dir:
-            raise FileNotFoundError(
-                "Data directory path could not be determined.")
 
-        self.parameters = fl_ctx.get_peer_context().get_prop(
-            "COMPUTATION_PARAMETERS", default=None)
+        parameters = fl_ctx.get_peer_context().get_prop("COMPUTATION_PARAMETERS", default=None)
+        print(f"Computation parameters: {parameters}")
 
-        print(f"Computation parameters: {self.parameters}")
+        X_train, y_train = self._load_data(data_dir, parameters)
+        print(f"Loaded data shapes - X: {X_train.shape}, y: {y_train.shape}")
 
-        X, y = self._load_data(data_dir)
-        print(f"Loaded data shapes - X: {X.shape}, y: {y.shape}")
-
-        self.model = Ridge(alpha=self.parameters.get('Lambda', 1.0))
-        self.model.fit(X, y)
+        model = Ridge(alpha=parameters.get('Lambda', 1.0))
+        model.fit(X_train, y_train)
         print("Model training completed.")
 
+        self._save_model(model)
+        self._save_parameters(parameters)
+        self._save_data(X_train, y_train)
+
         shareable = Shareable()
-        shareable["weights"] = self.model.coef_.tolist()
+        shareable["weights"] = model.coef_.tolist()
         return shareable
 
+
     def _task_set_global_model(self, shareable: Shareable, fl_ctx) -> Shareable:
-
-        print(f"Setting global model.")
-
+        print("Setting global model.")
         global_weights = shareable.get("global_model", {}).get("weights")
-        if global_weights is not None:
-            if self.model is None:
-                self.model = Ridge()
-            self.model.coef_ = np.array(global_weights)
 
-            # Save global model to file
-            self._save_global_model_to_file(global_weights, fl_ctx)
+        model = self._load_model()
+        X_train, y_train = self._load_data_from_file()
+        model.coef_ = np.array(global_weights)
+
+        print(f"\n\n")
+        print(f"typeof(X_train): {type(X_train)}, typeof(y_train): {type(y_train)}")
+        print(f"typeof(model.coef_): {type(model.coef_)}")
+        
+        try:
+            # Ensuring y_train is a 1-dimensional array for OLS
+            if y_train.ndim > 1 and y_train.shape[1] == 1:
+                y_train = y_train.flatten()
+            
+            X_train = X_train.astype(float)
+            y_train = y_train.astype(float)
+            X_with_const = sm.add_constant(X_train)
+            sm_model = sm.OLS(y_train, X_with_const).fit()
+            
+            print(f"typeof(sm_model.params): {type(sm_model.params)}")
+            print(f"typeof(sm_model.tvalues): {type(sm_model.tvalues)}")
+            print(f"typeof(sm_model.pvalues): {type(sm_model.pvalues)}")
+            print(f"typeof(sm_model.conf_int()): {type(sm_model.conf_int())}")
+            print(f"typeof(sm_model.rsquared): {type(sm_model.rsquared)}")
+            print(f"typeof(sm_model.df_resid): {type(sm_model.df_resid)}")
+
+            coefficients = sm_model.params.tolist()
+            t_stats = sm_model.tvalues.tolist()
+            p_values = sm_model.pvalues.tolist()
+            conf_int = sm_model.conf_int().tolist()
+            r_squared = sm_model.rsquared
+            degrees_of_freedom = int(sm_model.df_resid)
+
+            model_stats = {
+                "coefficients": coefficients,
+                "t_stats": t_stats,
+                "p_values": p_values,
+                "confidence_intervals": conf_int,
+                "r_squared": r_squared,
+                "degrees_of_freedom": degrees_of_freedom
+            }
+
+            self._save_global_model_to_file(
+                global_weights, model_stats, fl_ctx)
+        except Exception as e:
+            print(f"\n\nError in calculating model statistics: {e}\n\n")
+
         return Shareable()
 
-    def _load_data(self, data_dir):
-        print(f"\n\nLoading data from: {data_dir}")
+
+    def _load_data(self, data_dir, parameters):
+        print(f"Loading data from: {data_dir}")
         covariates_file = os.path.join(data_dir, "covariates.csv")
         data_file = os.path.join(data_dir, "data.csv")
 
@@ -73,10 +115,55 @@ class RidgeRegressionExecutor(Executor):
 
         print(f"Loaded files: {covariates_file}, {data_file}")
 
-        X = covariates_df[self.parameters.get('X_headers', [])]
-        y = data_df[self.parameters.get('y_headers', [])]
-        print(f"Extracted data - X: {X.head()}, y: {y.head()}")
+        x_headers = parameters.get('X_headers', [])
+        y_headers = parameters.get('y_headers', [])
+
+        if not all(col in covariates_df.columns for col in x_headers):
+            raise ValueError("Some specified X_headers do not exist in the covariates dataframe.")
+        if not all(col in data_df.columns for col in y_headers):
+            raise ValueError("Some specified y_headers do not exist in the data dataframe.")
+
+        def convert_to_int(value):
+            if isinstance(value, str):
+                if value.lower() == 'true':
+                    return 1
+                elif value.lower() == 'false':
+                    return 0
+            return value
+
+        covariates_df = covariates_df.applymap(convert_to_int)
+
+        # Convert to numeric and handle errors
+        covariates_df = covariates_df[x_headers].apply(pd.to_numeric, errors='coerce')
+        data_df = data_df[y_headers].apply(pd.to_numeric, errors='coerce')
+
+        # Drop rows with NaN values
+        covariates_df.dropna(inplace=True)
+        data_df.dropna(inplace=True)
+
+        # Ensure consistent sample size between X and y
+        if len(covariates_df) != len(data_df):
+            raise ValueError("Inconsistent number of samples between covariates and data.")
+
+        X = covariates_df.to_numpy()
+        y = data_df.sum(axis=1).to_numpy()  # Summing y values or adjust as needed
+
+        print(f"Extracted data - X: {X[:5]}, y: {y[:5]}")
+        print(f"Loaded data shapes - X: {X.shape}, y: {y.shape}")
+
         return X, y
+
+    
+    def _save_data(self, X, y):
+        with open(self.data_path, 'wb') as f:
+            pickle.dump((X, y), f)
+
+    def _load_data_from_file(self):
+        if os.path.exists(self.data_path):
+            with open(self.data_path, 'rb') as f:
+                return pickle.load(f)
+        else:
+            raise FileNotFoundError("Training data file not found.")
 
     def _get_data_dir_path(self, fl_ctx: FLContext) -> str:
         site_name = fl_ctx.get_prop(FLContextKey.CLIENT_NAME)
@@ -120,11 +207,34 @@ class RidgeRegressionExecutor(Executor):
         raise FileNotFoundError(
             "Results directory path could not be determined.")
 
-    def _save_global_model_to_file(self, global_weights: list, fl_ctx: FLContext):
+    def _save_global_model_to_file(self, global_weights: list, model_stats: dict, fl_ctx: FLContext):
         results_dir = self._get_results_dir_path(fl_ctx)
         os.makedirs(results_dir, exist_ok=True)
         file_path = os.path.join(results_dir, "global_model.json")
 
         print(f"Saving global model to: {file_path}")
         with open(file_path, "w") as f:
-            json.dump({"weights": global_weights}, f)
+            json.dump({"weights": global_weights,
+                      "model_statistics": model_stats}, f)
+
+    def _save_model(self, model):
+        with open(self.model_path, 'wb') as f:
+            pickle.dump(model, f)
+
+    def _load_model(self):
+        if os.path.exists(self.model_path):
+            with open(self.model_path, 'rb') as f:
+                return pickle.load(f)
+        else:
+            raise FileNotFoundError("Model file not found.")
+
+    def _save_parameters(self, parameters):
+        with open(self.parameters_path, 'wb') as f:
+            pickle.dump(parameters, f)
+
+    def _load_parameters(self):
+        if os.path.exists(self.parameters_path):
+            with open(self.parameters_path, 'rb') as f:
+                return pickle.load(f)
+        else:
+            raise FileNotFoundError("Parameters file not found.")
