@@ -1,81 +1,65 @@
+import os
+import logging
 from nvflare.apis.fl_constant import FLContextKey
 from nvflare.apis.fl_context import FLContext
-import os
-
 
 def get_data_directory_path(fl_ctx: FLContext) -> str:
     """Determine and return the data directory path based on the available paths."""
     site_name = fl_ctx.get_prop(FLContextKey.CLIENT_NAME)
 
-    # Production path (check environment variable or default to /workspace)
-    production_path = os.getenv("DATA_DIR", "/workspace/data")
-    if os.path.exists(production_path):
-        return production_path
+    # Identify possible paths
+    env_path = os.getenv("DATA_DIR")
+    simulator_path = os.path.abspath(os.path.join(os.getcwd(), f"../../../test_data/{site_name}"))
+    poc_path = os.path.abspath(os.path.join(os.getcwd(), f"../../../../test_data/{site_name}"))
 
-    # Simulator path
-    simulator_path = os.path.abspath(os.path.join(
-        os.getcwd(), "../../../test_data", site_name))
-    if os.path.exists(simulator_path):
-        return simulator_path
+    # List paths in order of preference
+    paths = [env_path, simulator_path, poc_path]
 
-    # POC path
-    poc_path = os.path.abspath(os.path.join(
-        os.getcwd(), "../../../../test_data", site_name))
-    if os.path.exists(poc_path):
-        return poc_path
+    # Check for the first valid path
+    for path in paths:
+        if path and os.path.exists(path):
+            logging.info(f"Data directory path: {path}")
+            return path
 
-    # Raise an error if no path is found
     raise FileNotFoundError("Data directory path could not be determined.")
-
 
 def get_output_directory_path(fl_ctx: FLContext) -> str:
     """Determine and return the output directory path based on the available paths."""
     job_id = fl_ctx.get_job_id()
     site_name = fl_ctx.get_prop(FLContextKey.CLIENT_NAME)
 
-    # Production path (check environment variable or default to /workspace)
-    production_path = os.getenv("OUTPUT_DIR", "/workspace/output")
-    if os.path.exists(production_path):
-        return production_path
+    # Identify possible paths
+    env_path = os.getenv("OUTPUT_DIR")
+    simulator_path = os.path.abspath(os.path.join(os.getcwd(), f"../../../test_output/{job_id}/{site_name}"))
+    poc_path = os.path.abspath(os.path.join(os.getcwd(), f"../../../../test_output/{job_id}/{site_name}"))
 
-    # Simulator path
-    simulator_path = os.path.abspath(os.path.join(
-        os.getcwd(), "../../../test_output", job_id, site_name))
-    if os.path.exists(simulator_path):
-        os.makedirs(simulator_path, exist_ok=True)
-        return simulator_path
+    # List paths in order of preference
+    paths = [env_path, simulator_path, poc_path]
 
-    # POC path
-    poc_path = os.path.abspath(os.path.join(
-        os.getcwd(), "../../../../test_output", job_id, site_name))
-    if os.path.exists(poc_path):
-        os.makedirs(poc_path, exist_ok=True)
-        return poc_path
+    # Check for the first valid path and create it if necessary
+    for path in paths:
+        if path:
+            os.makedirs(path, exist_ok=True)
+            logging.info(f"Output directory path: {path}")
+            return path
 
-    # Raise an error if no path is found
-    raise FileNotFoundError("output directory path could not be determined.")
-
+    raise FileNotFoundError("Output directory path could not be determined.")
 
 def get_parameters_file_path(fl_ctx: FLContext) -> str:
     """Determine and return the parameters file path based on the available paths."""
 
-    # Production path (check environment variable or default to /workspace)
-    production_path = os.getenv(
-        "PARAMETERS_FILE_PATH", "/workspace/runKit/parameters.json")
-    if os.path.exists(production_path):
-        return production_path
+    # Identify possible paths
+    env_path = os.getenv("PARAMETERS_FILE_PATH")
+    simulator_path = os.path.abspath(os.path.join(os.getcwd(), "../test_data/server/parameters.json"))
+    poc_path = os.path.abspath(os.path.join(os.getcwd(), "../../../../test_data/server/parameters.json"))
 
-    # Simulator path
-    simulator_path = os.path.abspath(os.path.join(
-        os.getcwd(), "../test_data", "server", "parameters.json"))
-    if os.path.exists(simulator_path):
-        return simulator_path
+    # List paths in order of preference
+    paths = [env_path, simulator_path, poc_path]
 
-    # POC path
-    poc_path = os.path.abspath(os.path.join(
-        os.getcwd(), "../../../../test_data", "server", "parameters.json"))
-    if os.path.exists(poc_path):
-        return poc_path
+    # Check for the first valid path
+    for path in paths:
+        if path and os.path.exists(path):
+            logging.info(f"Parameters file path: {path}")
+            return path
 
-    # Raise an error if no path is found
     raise FileNotFoundError("Parameters file path could not be determined.")

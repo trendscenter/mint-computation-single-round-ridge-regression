@@ -7,8 +7,13 @@
   "task_result_filters": [],
   "components": [
     {
-      "id": "aggregator",
-      "path": "aggregator.aggregator.SrrAggregator",
+      "id": "regression_aggregator",
+      "path": "aggregator.regression_aggregator.RegressionAggregator",
+      "args": {}
+    },
+    {
+      "id": "validation_aggregator",
+      "path": "aggregator.validation_aggregator.ValidationAggregator",
       "args": {}
     }
   ],
@@ -17,7 +22,8 @@
       "id": "ridge_regression_workflow",
       "path": "controller.controller.SrrController",
       "args": {
-        "aggregator_id": "aggregator"
+        "regression_aggregator_id": "regression_aggregator",
+        "validation_aggregator_id": "validation_aggregator"
       }
     }
   ]

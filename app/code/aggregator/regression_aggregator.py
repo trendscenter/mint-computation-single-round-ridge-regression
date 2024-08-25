@@ -4,7 +4,7 @@ from nvflare.apis.fl_context import FLContext
 from nvflare.app_common.abstract.aggregator import Aggregator
 from nvflare.apis.fl_constant import ReservedKey
 
-class SrrAggregator(Aggregator):
+class RegressionAggregator(Aggregator):
     def __init__(self):
         super().__init__()
         self.site_results: List[Dict[str, Any]] = []

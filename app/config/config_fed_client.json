@@ -3,8 +3,10 @@
   "executors": [
     {
       "tasks": [
-        "train_local_model",
-        "set_global_model"
+        "perform_run_input_validation",
+        "save_global_validation_report",
+        "perform_regression",
+        "save_global_regression_results"
       ],
       "executor": {
         "path": "executor.executor.SrrExecutor",
