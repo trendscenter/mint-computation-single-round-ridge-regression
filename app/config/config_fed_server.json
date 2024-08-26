@@ -10,20 +10,15 @@
       "id": "regression_aggregator",
       "path": "aggregator.regression_aggregator.RegressionAggregator",
       "args": {}
-    },
-    {
-      "id": "validation_aggregator",
-      "path": "aggregator.validation_aggregator.ValidationAggregator",
-      "args": {}
     }
+
   ],
   "workflows": [
     {
       "id": "ridge_regression_workflow",
       "path": "controller.controller.SrrController",
       "args": {
-        "regression_aggregator_id": "regression_aggregator",
-        "validation_aggregator_id": "validation_aggregator"
+        "regression_aggregator_id": "regression_aggregator"
       }
     }
   ]

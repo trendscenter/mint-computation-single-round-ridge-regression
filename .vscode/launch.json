@@ -8,7 +8,7 @@
             "program": "/workspace/debug.py",
             "console": "integratedTerminal",
             "args": [
-                "-w", "/workspace",
+                "-w", "/workspace/simulator_workspace",
                 "-c", "site1,site2",
                 "./jobs/job"
             ],
