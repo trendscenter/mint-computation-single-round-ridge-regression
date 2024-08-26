@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Simulator",
+            "type": "debugpy",  
+            "request": "launch",
+            "program": "/workspace/debug.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-w", "/workspace",
+                "-c", "site1,site2",
+                "./jobs/job"
+            ],
+            "cwd": "/workspace",
+        }   
+    ]
+}

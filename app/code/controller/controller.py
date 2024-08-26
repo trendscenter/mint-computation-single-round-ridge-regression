@@ -53,18 +53,20 @@ class SrrController(Controller):
         )
         
         # Step 3: Aggregate and check validation results
-        validation_report = self.validation_aggregator.aggregate()
+        validation_output = self.validation_aggregator.aggregate()
         self._broadcast_task(
             task_name=TASK_NAME_SAVE_GLOBAL_VALIDATION_REPORT,
-            data=validation_report,
+            data=validation_output,
             result_cb=None,  # No callback needed for save validation report
             fl_ctx=fl_ctx,
             abort_signal=abort_signal
         )
         
-        if not self._check_validation_results(validation_report):
+        if not validation_output.get("validation_report", {}).get("is_valid", False):
+            logging.error(f"Validation failed: {validation_output.get('error_message', 'Unknown error')}")
             self._graceful_shutdown(fl_ctx)
             return
+        
 
         # Step 4: Broadcast perform regression task
         self._broadcast_task(
@@ -124,13 +126,6 @@ class SrrController(Controller):
     def _accept_site_validation_result(self, client_task: ClientTask, fl_ctx: FLContext) -> bool:
         """Accept the validation result from a site."""
         return self.validation_aggregator.accept(client_task.result, fl_ctx)
-
-    def _check_validation_results(self, validation_report: Shareable) -> bool:
-        """Check if all sites passed validation based on the aggregated report."""
-        if not validation_report.get("is_valid"):
-            logging.error(f"Validation failed: {validation_report.get('error_message', 'Unknown error')}")
-            return False
-        return True
 
     def _accept_site_regression_result(self, client_task: ClientTask, fl_ctx: FLContext) -> bool:
         """Accept the regression result from a site."""

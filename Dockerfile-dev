@@ -1,21 +1,16 @@
 FROM python:3.8-buster
 
-# Upgrade pip and setuptools
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
 
-# Copy the requirements file into the container
+RUN python3 -m pip install nvflare==2.4.0
+
 COPY requirements.txt /workspace/requirements.txt
 
-# Install the required Python packages from requirements.txt
-RUN python3 -m pip install nvflare==2.4.0
-RUN python3 -m pip install pandas
-RUN python3 -m pip install statsmodels
+RUN python3 -m pip install -r /workspace/requirements.txt
 
-# Set the working directory
 WORKDIR /workspace/
 
-# Set environment variables
 ENV PYTHONPATH=$PYTHONPATH:/workspace/app/code/
 ENV NVFLARE_POC_WORKSPACE=/workspace/poc-workspace
 

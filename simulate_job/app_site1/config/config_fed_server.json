@@ -1,0 +1,30 @@
+{
+  "format_version": 2,
+  "server": {
+    "heart_beat_timeout": 600
+  },
+  "task_data_filters": [],
+  "task_result_filters": [],
+  "components": [
+    {
+      "id": "regression_aggregator",
+      "path": "aggregator.regression_aggregator.RegressionAggregator",
+      "args": {}
+    },
+    {
+      "id": "validation_aggregator",
+      "path": "aggregator.validation_aggregator.ValidationAggregator",
+      "args": {}
+    }
+  ],
+  "workflows": [
+    {
+      "id": "ridge_regression_workflow",
+      "path": "controller.controller.SrrController",
+      "args": {
+        "regression_aggregator_id": "regression_aggregator",
+        "validation_aggregator_id": "validation_aggregator"
+      }
+    }
+  ]
+}
