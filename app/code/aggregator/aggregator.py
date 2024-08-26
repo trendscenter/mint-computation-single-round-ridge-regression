@@ -20,10 +20,12 @@ class SrrAggregator(Aggregator):
         self.site_results[site_name] = site_result["result"]
         return True
 
-    def aggregate(self) -> Shareable:
+    def aggregate(self, fl_ctx) -> Shareable:
         """
         Aggregates the results from all sites.
         """
+        covariates_headers = fl_ctx.get_prop("COMPUTATION_PARAMETERS")["Covariates"]
+
         outgoing_shareable = Shareable()
-        outgoing_shareable["result"] = calculate_global_values(self.site_results)
+        outgoing_shareable["result"] = calculate_global_values(self.site_results, covariates_headers)
         return outgoing_shareable

@@ -1,6 +1,6 @@
 import numpy as np
 
-def calculate_global_values(site_results):
+def calculate_global_values(site_results, covariates_headers):
     global_results = {}
 
     for dependent_var in site_results[next(iter(site_results))].keys():
@@ -53,6 +53,7 @@ def calculate_global_values(site_results):
 
         # Store the aggregated global results
         global_results[dependent_var] = {
+            "Variables": ['Intercept'] + covariates_headers,
             "Coefficients": avg_coefficients.tolist(),
             "t-Statistics": avg_t_stats.tolist(),
             "P-Values": avg_p_values.tolist(),

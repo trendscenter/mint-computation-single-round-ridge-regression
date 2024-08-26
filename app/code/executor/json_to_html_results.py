@@ -40,39 +40,40 @@ def json_to_html_results(json_data, table_name="Regression Results"):
         html_content += "<table>\n"
         
         # Table headers
-        html_content += """
-        <tr>
-            <th>Metric</th>
-            <th>Coefficient</th>
-            <th>t-Statistic</th>
-            <th>P-Value</th>
-        </tr>
-        """
+        html_content += "<tr><th>Metric</th>"
+        for variable in values["Variables"]:
+            html_content += f"<th>{variable}</th>"
+        html_content += "</tr>"
         
         # Add rows for Coefficients, t-Statistics, and P-Values
-        for i in range(len(values["Coefficients"])):
-            html_content += f"""
-            <tr>
-                <td>Variable {i + 1}</td>
-                <td>{values['Coefficients'][i]:.4f}</td>
-                <td>{values['t-Statistics'][i]:.4f}</td>
-                <td>{values['P-Values'][i]:.4e}</td>
-            </tr>
-            """
+        html_content += "<tr><td>Coefficient</td>"
+        for coef in values["Coefficients"]:
+            html_content += f"<td>{coef:.4f}</td>"
+        html_content += "</tr>"
+
+        html_content += "<tr><td>t Stat</td>"
+        for t_stat in values["t-Statistics"]:
+            html_content += f"<td>{t_stat:.4f}</td>"
+        html_content += "</tr>"
+
+        html_content += "<tr><td>P-value</td>"
+        for p_val in values["P-Values"]:
+            html_content += f"<td>{p_val:.4e}</td>"
+        html_content += "</tr>"
         
         # Add rows for R-Squared, Degrees of Freedom, Sum of Squared Errors
         html_content += f"""
         <tr>
             <td>R-Squared</td>
-            <td colspan="3">{values['R-Squared']:.4f}</td>
+            <td colspan="{len(values['Variables'])}">{values['R-Squared']:.4f}</td>
         </tr>
         <tr>
             <td>Degrees of Freedom</td>
-            <td colspan="3">{values['Degrees of Freedom']:.0f}</td>
+            <td colspan="{len(values['Variables'])}">{values['Degrees of Freedom']:.0f}</td>
         </tr>
         <tr>
             <td>Sum of Squared Errors</td>
-            <td colspan="3">{values['Sum of Squared Errors']:.2f}</td>
+            <td colspan="{len(values['Variables'])}">{values['Sum of Squared Errors']:.2f}</td>
         </tr>
         """
         

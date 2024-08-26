@@ -41,7 +41,7 @@ class SrrController(Controller):
             abort_signal=abort_signal
         )
 
-        aggregate_result = self.srr_aggregator.aggregate()
+        aggregate_result = self.srr_aggregator.aggregate(fl_ctx)
 
         self._broadcast_task(
             task_name=TASK_NAME_SAVE_GLOBAL_REGRESSION_RESULTS,

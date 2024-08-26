@@ -3,9 +3,9 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
-from typing import List, Dict
+from typing import List, Dict, Any
 
-def perform_ridge_regression(covariates_path: str, data_path: str, covariates_headers: List[str], data_headers: List[str]) -> Dict[str, Dict[str, float]]:
+def perform_ridge_regression(covariates_path: str, data_path: str, covariates_headers: List[str], data_headers: List[str]) -> Dict[str, Dict[str, Any]]:
     # Load data
     covariates = pd.read_csv(covariates_path)
     data = pd.read_csv(data_path)
@@ -21,6 +21,9 @@ def perform_ridge_regression(covariates_path: str, data_path: str, covariates_he
 
     # Initialize results storage
     results = {}
+
+    # Include intercept in the headers for labeling
+    covariate_labels = ['Intercept'] + covariates_headers
 
     # Loop through each dependent variable in data.csv
     for dependent_var in data.columns:
@@ -41,8 +44,9 @@ def perform_ridge_regression(covariates_path: str, data_path: str, covariates_he
         degrees_of_freedom = ols_model.df_resid
         sse = np.sum((y - ridge_model.predict(X)) ** 2)
 
-        # Store only the necessary derived results, without raw input/target data
+        # Store results with proper labeling of variables
         results[dependent_var] = {
+            "Variables": covariate_labels,
             "Coefficients": coefficients.tolist(),
             "t-Statistics": t_stats.tolist(),
             "P-Values": p_values.tolist(),
