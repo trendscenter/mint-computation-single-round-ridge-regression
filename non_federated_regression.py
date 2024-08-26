@@ -4,6 +4,7 @@ from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 import os
+import json
 
 def perform_ridge_regression(covariates_path, data_path):
     # Load data
@@ -39,9 +40,9 @@ def perform_ridge_regression(covariates_path, data_path):
 
         # Store the results, including the input and target data for global calculations
         results[dependent_var] = {
-            "Coefficients": coefficients,
-            "t-Statistics": t_stats,
-            "P-Values": p_values,
+            "Coefficients": coefficients.tolist(),
+            "t-Statistics": t_stats.tolist(),
+            "P-Values": p_values.tolist(),
             "R-Squared": r_squared,
             "Degrees of Freedom": degrees_of_freedom,
             "Sum of Squared Errors": sse,
@@ -88,9 +89,9 @@ def calculate_global_values(site_results):
 
         # Store the global results
         global_results[dependent_var] = {
-            "Coefficients": coefficients,
-            "t-Statistics": t_stats,
-            "P-Values": p_values,
+            "Coefficients": coefficients.tolist(),
+            "t-Statistics": t_stats.tolist(),
+            "P-Values": p_values.tolist(),
             "R-Squared": r_squared,
             "Degrees of Freedom": degrees_of_freedom,
             "Sum of Squared Errors": sse
@@ -98,32 +99,17 @@ def calculate_global_values(site_results):
 
     return global_results
 
-def print_results(site_results, global_results):
-    print("Results")
-
-    for dependent_var in global_results.keys():
-        print(f"\n{dependent_var}")
-        
-        # Print Globals
-        print("Globals")
-        print("const\tMDD\tAge\tSex\tICV")
-        globals_stats = global_results[dependent_var]
-        print(f"Coefficient\t{globals_stats['Coefficients'][0]}\t{globals_stats['Coefficients'][1]}\t{globals_stats['Coefficients'][2]}\t{globals_stats['Coefficients'][3]}\t{globals_stats['Coefficients'][4]}")
-        print(f"t Stat\t{globals_stats['t-Statistics'][0]}\t{globals_stats['t-Statistics'][1]}\t{globals_stats['t-Statistics'][2]}\t{globals_stats['t-Statistics'][3]}\t{globals_stats['t-Statistics'][4]}")
-        print(f"P-value\t{globals_stats['P-Values'][0]}\t{globals_stats['P-Values'][1]}\t{globals_stats['P-Values'][2]}\t{globals_stats['P-Values'][3]}\t{globals_stats['P-Values'][4]}")
-        print(f"R Squared\t{globals_stats['R-Squared']}")
-        print(f"Degrees of Freedom\t{globals_stats['Degrees of Freedom']}")
-
-        # Print per site results
-        for site, site_stats in site_results.items():
-            print(f"\n{site}")
-            print("const\tMDD\tAge\tSex\tICV")
-            site_dependent_stats = site_stats[dependent_var]
-            print(f"Coefficient\t{site_dependent_stats['Coefficients'][0]}\t{site_dependent_stats['Coefficients'][1]}\t{site_dependent_stats['Coefficients'][2]}\t{site_dependent_stats['Coefficients'][3]}\t{site_dependent_stats['Coefficients'][4]}")
-            print(f"t Stat\t{site_dependent_stats['t-Statistics'][0]}\t{site_dependent_stats['t-Statistics'][1]}\t{site_dependent_stats['t-Statistics'][2]}\t{site_dependent_stats['t-Statistics'][3]}\t{site_dependent_stats['t-Statistics'][4]}")
-            print(f"P-value\t{site_dependent_stats['P-Values'][0]}\t{site_dependent_stats['P-Values'][1]}\t{site_dependent_stats['P-Values'][2]}\t{site_dependent_stats['P-Values'][3]}\t{site_dependent_stats['P-Values'][4]}")
-            print(f"Sum Square of Errors\t{site_dependent_stats['Sum of Squared Errors']}")
-            print(f"R Squared\t{site_dependent_stats['R-Squared']}")
+def save_results_to_json(global_results, site_results):
+    # Save global results
+    with open('global_results.json', 'w') as f:
+        json.dump(global_results, f, indent=4)
+    
+    # Save local results for each site
+    for site_id, results in site_results.items():
+        with open(f'{site_id}_results.json', 'w') as f:
+            # Remove Input Data and Target Data from results before saving
+            clean_results = {k: {key: val for key, val in v.items() if key not in ["Input Data", "Target Data"]} for k, v in results.items()}
+            json.dump(clean_results, f, indent=4)
 
 # Example usage for multiple sites
 sites = ['site1', 'site2']
@@ -137,5 +123,5 @@ for site in sites:
 # Calculate global values
 global_results = calculate_global_values(site_results)
 
-# Print all results in the requested format
-print_results(site_results, global_results)
+# Save the results
+save_results_to_json(global_results, site_results)
