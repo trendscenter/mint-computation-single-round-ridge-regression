@@ -1,0 +1,16 @@
+# Example Parameters
+```
+{
+    "Dependents": [
+        "L_hippo",
+        "R_hippo",
+        "Tot_hippo"
+    ],
+    "Covariates": [
+        "MDD",
+        "Age",
+        "Sex",
+        "ICV"
+    ]
+}
+```
