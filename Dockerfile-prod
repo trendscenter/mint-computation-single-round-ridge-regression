@@ -20,4 +20,4 @@ COPY ./entry_edge.py /workspace/entry_edge.py
 
 ENV DATA_DIR=/workspace/data/
 ENV OUTPUT_DIR=/workspace/output/
-ENV PARAMETERS_FILE_PATH=/runKit/parameters.json
+ENV PARAMETERS_FILE_PATH=/workspace/runKit/parameters.json
