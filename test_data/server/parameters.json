@@ -9,7 +9,5 @@
         "Age",
         "Sex",
         "ICV"
-    ],
-    "Merge_Key": "ICV",
-    "Lambda": 0
+    ]
 }
