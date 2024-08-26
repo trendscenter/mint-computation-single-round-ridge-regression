@@ -12,20 +12,20 @@ TASK_NAME_SAVE_GLOBAL_REGRESSION_RESULTS = "save_global_regression_results"
 class SrrController(Controller):
     def __init__(
         self,
-        regression_aggregator_id="regression_aggregator",
+        srr_aggregator_id="srr_aggregator",
         min_clients: int = 2,
         wait_time_after_min_received: int = 10,
         task_timeout: int = 0,
     ):
         super().__init__()
-        self.regression_aggregator_id = regression_aggregator_id
-        self.regression_aggregator = None
+        self.srr_aggregator_id = srr_aggregator_id
+        self.srr_aggregator = None
         self._task_timeout = task_timeout
         self._min_clients = min_clients
         self._wait_time_after_min_received = wait_time_after_min_received
 
     def start_controller(self, fl_ctx: FLContext) -> None:
-        self.regression_aggregator = self._engine.get_component(self.regression_aggregator_id)
+        self.srr_aggregator = self._engine.get_component(self.srr_aggregator_id)
 
     def stop_controller(self, fl_ctx: FLContext) -> None:
         pass
@@ -41,7 +41,7 @@ class SrrController(Controller):
             abort_signal=abort_signal
         )
 
-        aggregate_result = self.regression_aggregator.aggregate()
+        aggregate_result = self.srr_aggregator.aggregate()
 
         self._broadcast_task(
             task_name=TASK_NAME_SAVE_GLOBAL_REGRESSION_RESULTS,
@@ -76,7 +76,7 @@ class SrrController(Controller):
             )
 
     def _accept_site_regression_result(self, client_task: ClientTask, fl_ctx: FLContext) -> bool:
-        return self.regression_aggregator.accept(client_task.result, fl_ctx)
+        return self.srr_aggregator.accept(client_task.result, fl_ctx)
 
     def process_result_of_unknown_task(self, task: Task, fl_ctx: FLContext) -> None:
         pass

@@ -5,7 +5,7 @@ from nvflare.app_common.abstract.aggregator import Aggregator
 from nvflare.apis.fl_constant import ReservedKey
 from .calculate_global_values import calculate_global_values
 
-class RegressionAggregator(Aggregator):
+class SrrAggregator(Aggregator):
     def __init__(self):
         super().__init__()
         self.site_results: Dict[str, Dict[str, Any]] = {}  # Store results as a dictionary

@@ -3,8 +3,6 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
-import json
-
 
 def perform_ridge_regression(covariates_path, data_path):
     # Load data
@@ -38,16 +36,14 @@ def perform_ridge_regression(covariates_path, data_path):
         degrees_of_freedom = ols_model.df_resid
         sse = np.sum((y - ridge_model.predict(X)) ** 2)
 
-        # Store the results, including the input and target data for global calculations
+        # Store only the necessary derived results, without raw input/target data
         results[dependent_var] = {
             "Coefficients": coefficients.tolist(),
             "t-Statistics": t_stats.tolist(),
             "P-Values": p_values.tolist(),
             "R-Squared": r_squared,
             "Degrees of Freedom": degrees_of_freedom,
-            "Sum of Squared Errors": sse,
-            "Input Data": X.tolist(),
-            "Target Data": y.tolist()
+            "Sum of Squared Errors": sse
         }
 
     return results

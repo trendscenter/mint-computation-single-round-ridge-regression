@@ -3,8 +3,6 @@
   "executors": [
     {
       "tasks": [
-        "perform_run_input_validation",
-        "save_global_validation_report",
         "perform_regression",
         "save_global_regression_results"
       ],
