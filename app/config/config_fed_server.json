@@ -18,7 +18,6 @@
       "id": "srr_workflow",
       "path": "controller.controller.SrrController",
       "args": {
-        "srr_aggregator_id": "srr_aggregator"
       }
     }
   ]
