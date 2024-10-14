@@ -1,23 +1,28 @@
 FROM python:3.8-buster
 
+# Upgrade pip and setuptools
 RUN python3 -m pip install -U pip
 RUN python3 -m pip install -U setuptools
-RUN python3 -m pip install nvflare==2.4.0
 
-
-COPY requirements.txt /workspace/requirements.txt
-
-RUN python3 -m pip install -r /workspace/requirements.txt
-
+# Set working directory
 WORKDIR /workspace/
 
-ENV PYTHONPATH=$PYTHONPATH:/workspace/app/code/
+# Copy the requirements.txt file
+COPY ./requirements.txt /workspace/requirements.txt
 
+# Install dependencies from requirements.txt
+RUN python3 -m pip install -r /workspace/requirements.txt
+
+# Copy the rest of the application files
 COPY ./jobs/ /workspace/jobs/
 COPY ./app/ /workspace/app/
 COPY ./entry_central.py /workspace/entry_central.py
 COPY ./entry_edge.py /workspace/entry_edge.py
+COPY ./provisioning/ /workspace/provisioning/
+COPY ./entry_provision.py /workspace/entry_provision.py
 
+# Set environment variables
+ENV PYTHONPATH=/workspace/app/code/
 ENV DATA_DIR=/workspace/data/
 ENV OUTPUT_DIR=/workspace/output/
 ENV PARAMETERS_FILE_PATH=/workspace/runKit/parameters.json
