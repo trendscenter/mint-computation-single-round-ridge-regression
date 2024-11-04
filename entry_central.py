@@ -7,7 +7,7 @@ from nvflare.apis.job_def import RunStatus, JobMetaKey
 STARTUP_SCRIPT_DIRECTORY = "/workspace/runKit/server/startup"
 STARTUP_SCRIPT_PATH = "/workspace/runKit/server/startup/start.sh"
 ADMIN_DIRECTORY_PATH = "/workspace/runKit/admin"
-JOB_DIRECTORY_PATH = "/workspace/jobs/job/"
+JOB_DIRECTORY_PATH = "/workspace/runKit/job/"
 ADMIN_USER_EMAIL = "admin@admin.com"
 
 def start_server():

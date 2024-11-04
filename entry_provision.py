@@ -62,6 +62,7 @@ def main():
     provision_run(
         user_ids=user_ids,
         path_run=path_run,
+        path_app="/workspace/app",
         computation_parameters=computation_parameters,
         fed_learn_port=fed_learn_port,
         admin_port=admin_port,

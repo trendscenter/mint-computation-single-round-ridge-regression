@@ -3,7 +3,6 @@ import logging
 from .generate_project_file import generate_project_file
 from .create_startup_kits import create_startup_kits
 from .create_run_kits import create_run_kits
-from .prepare_hosting_directory import prepare_hosting_directory
 from typing import List
 
 
@@ -13,6 +12,7 @@ logger = logging.getLogger(__name__)
 def provision_run(
     user_ids: List[str],
     path_run: str,
+    path_app: str,
     computation_parameters: str,
     fed_learn_port: int,
     admin_port: int,
@@ -45,6 +45,8 @@ def provision_run(
     )
 
     create_run_kits(
+        path_app=path_app,
+        user_ids=user_ids,
         startup_kits_path=os.path.join(path_startup_kits, 'project', 'prod_00'),
         output_directory=path_run_kits,
         computation_parameters=computation_parameters,
