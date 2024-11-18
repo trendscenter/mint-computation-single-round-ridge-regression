@@ -3,7 +3,7 @@ import os
 import logging
 import sys
 import argparse
-from provisioning.code.provision_run import provision_run
+from provision.code.provision_run import provision_run
 
 # Set up logging
 logger = logging.getLogger(__name__)
