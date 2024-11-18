@@ -14,12 +14,11 @@ COPY ./requirements.txt /workspace/requirements.txt
 RUN python3 -m pip install -r /workspace/requirements.txt
 
 # Copy the rest of the application files
-COPY ./jobs/ /workspace/jobs/
 COPY ./app/ /workspace/app/
-COPY ./entry_central.py /workspace/entry_central.py
-COPY ./entry_edge.py /workspace/entry_edge.py
-COPY ./provisioning/ /workspace/provisioning/
-COPY ./entry_provision.py /workspace/entry_provision.py
+COPY ./system/entry_central.py /workspace/system/entry_central.py
+COPY ./system/entry_edge.py /workspace/system/entry_edge.py
+COPY ./system/provision/ /workspace/system/provision/
+COPY ./system/entry_provision.py /workspace/system/entry_provision.py
 
 # Set environment variables
 ENV PYTHONPATH=/workspace/app/code/
